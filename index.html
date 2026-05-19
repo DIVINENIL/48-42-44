@@ -106,26 +106,27 @@
         </div>
     </div>
 
-    <script>
-        // สร้างตัวแปรเสียงแบบ Native
-       const horrorBgm = new Audio('horror-bgm.mp3'); 
-const doorSfx = new Audio('door-creak.mp3');
-const screamSfx = new Audio('scream.mp3');
-const hbdMusic = new Audio('hbd-song.mp3');
+<script>
+        // 1. สร้างตัวแปรเสียง (ใช้ชื่อไฟล์ตรงๆ)
+        const horrorBgm = new Audio('horror-bgm.mp3'); 
+        const doorSfx = new Audio('door-creak.mp3');
+        const screamSfx = new Audio('scream.mp3');
+        const hbdMusic = new Audio('hbd-song.mp3');
 
+        // ตั้งค่าการเล่นซ้ำ
         horrorBgm.loop = true;
+        hbdMusic.loop = true;
 
+        // ฟังก์ชันเริ่มเกม (แก้ปัญหา AbortError และ Unlock เสียง)
         function startEverything() {
-            // หัวใจสำคัญ: เมื่อกดปุ่มนี้ ให้เล่นเสียงทุกอย่างแล้วหยุดทันทีเพื่อปลดล็อก
-            [horrorBgm, doorSfx, screamSfx, hbdMusic].forEach(s => {
-                s.play().then(() => s.pause()).catch(e => console.log("Unlock failed"));
-            });
-
-            horrorBgm.currentTime = 0;
-            horrorBgm.play();
-
+            // ปิดหน้าจอปลดล็อกทันทีเพื่อให้ดูลื่นไหล
             document.getElementById('sound-unlocker').style.display = 'none';
             document.getElementById('game-container').classList.remove('hidden');
+
+            // เริ่มเล่นเพลงหลอน (ถ้าไฟล์มีอยู่จริง มันจะดังแน่นอน)
+            horrorBgm.play().catch(e => {
+                console.log("ยังเล่นเพลงไม่ได้: ", e);
+            });
         }
 
         function showStage(num) {
@@ -136,10 +137,10 @@ const hbdMusic = new Audio('hbd-song.mp3');
         function checkStage1() {
             const code = document.getElementById('code-input').value;
             if(code === '19052551' || code === '19052008') {
-                doorSfx.play();
+                doorSfx.play().catch(e => console.log("เสียงประตูมีปัญหา"));
                 showStage(2);
             } else {
-                screamSfx.play();
+                screamSfx.play().catch(e => console.log("เสียงกรี๊ดมีปัญหา"));
                 alert('Wrong code...');
             }
         }
@@ -148,17 +149,23 @@ const hbdMusic = new Audio('hbd-song.mp3');
             const name = document.getElementById('name-input').value.trim();
             if(name === 'เนตร') {
                 window.userName = name;
-                doorSfx.play();
+                doorSfx.play().catch(e => console.log("เสียงประตูมีปัญหา"));
                 showStage(3);
             } else {
-                screamSfx.play();
+                screamSfx.play().catch(e => console.log("เสียงกรี๊ดมีปัญหา"));
                 alert('The mirror remains silent.');
             }
         }
 
         function revealHBD() {
+            // หยุดเพลงหลอนก่อนเริ่มเพลง HBD
             horrorBgm.pause();
-            hbdMusic.play();
+            
+            // เล่นเพลงวันเกิด
+            hbdMusic.play().catch(e => {
+                alert("หาไฟล์เพลง HBD ไม่เจอ! ตรวจสอบชื่อไฟล์ใน GitHub อีกรอบนะ");
+                console.log(e);
+            });
 
             document.body.classList.add('hbd-bg');
             document.getElementById('final-name').innerText = "✨ " + (window.userName || "เนตร") + " ✨";
@@ -169,39 +176,29 @@ const hbdMusic = new Audio('hbd-song.mp3');
         }
 
         function startConfetti() {
-    for (let i = 0; i < 50; i++) {
-        setTimeout(() => {
-            const p = document.createElement('div');
-            p.innerText = Math.random() > 0.5 ? "🎈" : "✨";
-            p.style.position = 'fixed';
-            p.style.left = Math.random() * 100 + 'vw';
-            p.style.top = '110vh';
-            
-            // --- ส่วนที่เพิ่มการสุ่มขนาด ---
-            // สุ่มขนาดตั้งแต่ 20px ถึง 60px
-            const randomSize = Math.floor(Math.random() * 41) + 20; 
-            p.style.fontSize = randomSize + 'px';
-            
-            // สุ่มความเร็ว (ยิ่งตัวใหญ่ยิ่งลอยเร็ว หรือสุ่มแยกก็ได้)
-            let speed = Math.random() * 1 + 1; 
-            // ---------------------------
-
-            p.style.zIndex = "999"; // ให้ลอยทับทุกอย่าง
-            p.style.pointerEvents = "none"; // ทำให้คลิกทะลุได้ ไม่เกะกะปุ่ม
-            
-            document.body.appendChild(p);
-            
-            let pos = 110;
-            function up() {
-                pos -= speed; // ใช้ความเร็วที่สุ่มมา
-                p.style.top = pos + 'vh';
-                if (pos > -10) requestAnimationFrame(up);
-                else p.remove();
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const p = document.createElement('div');
+                    p.innerText = Math.random() > 0.5 ? "🎈" : "✨";
+                    p.style.position = 'fixed';
+                    p.style.left = Math.random() * 100 + 'vw';
+                    p.style.top = '110vh';
+                    const randomSize = Math.floor(Math.random() * 41) + 20; 
+                    p.style.fontSize = randomSize + 'px';
+                    let speed = Math.random() * 1 + 1; 
+                    p.style.zIndex = "999";
+                    p.style.pointerEvents = "none";
+                    document.body.appendChild(p);
+                    let pos = 110;
+                    function up() {
+                        pos -= speed; p.style.top = pos + 'vh';
+                        if (pos > -10) requestAnimationFrame(up);
+                        else p.remove();
+                    }
+                    up();
+                }, i * 100);
             }
-            up();
-        }, i * 100);
-    }
-}
+        }
     </script>
 </body>
 </html>
