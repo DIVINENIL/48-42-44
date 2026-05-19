@@ -158,13 +158,19 @@
         }
 
         function revealHBD() {
-            // หยุดเพลงหลอนก่อนเริ่มเพลง HBD
             horrorBgm.pause();
             
-            // เล่นเพลงวันเกิด
-            hbdMusic.play().catch(e => {
-                alert("หาไฟล์เพลง HBD ไม่เจอ! ตรวจสอบชื่อไฟล์ใน GitHub อีกรอบนะ");
-                console.log(e);
+            // สั่งให้โหลดเพลงใหม่เพื่อความชัวร์ (ป้องกันอาการหาไฟล์ไม่เจอในรอบสอง)
+            hbdMusic.load(); 
+            
+            // พอโหลดพร้อมแล้วค่อยเล่น
+            hbdMusic.play().then(() => {
+                console.log("HBD Music started!");
+            }).catch(e => {
+                console.error("HBD Music failed:", e);
+                // ถ้ายังเล่นไม่ได้ ให้ลองสุ่มเรียกไฟล์ผ่าน URL เต็ม
+                hbdMusic.src = 'hbd-song.mp3?v=' + Date.now(); // เพิ่มตัวเลขสุ่มเพื่อกัน Cache
+                hbdMusic.play();
             });
 
             document.body.classList.add('hbd-bg');
