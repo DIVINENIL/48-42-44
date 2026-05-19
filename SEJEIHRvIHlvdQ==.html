@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Silent Room</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Special+Elite&family=Poppins:wght@700&display=swap');
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #000; color: #d1d1d1;
+            font-family: 'Special Elite', serif; overflow: hidden;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        #game-container { width: 100%; max-width: 600px; text-align: center; padding: 20px; }
+        .hidden { display: none !important; }
+
+        /* หน้าแรกสุด - ตัวปลดล็อกเสียง */
+        #sound-unlocker {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 9999; display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+        }
+
+        .glitch {
+            font-family: 'Creepster', cursive; font-size: 3rem; color: #8b0000;
+            text-shadow: 2px 2px #000; animation: flicker 0.1s infinite;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.9; transform: skew(0.5deg); }
+            100% { opacity: 0.8; transform: skew(-0.5deg); }
+        }
+
+        button {
+            background: #1a1a1a; color: #8b0000; border: 1px solid #8b0000;
+            padding: 15px 30px; cursor: pointer; margin-top: 30px;
+            text-transform: uppercase; letter-spacing: 2px; font-family: inherit;
+        }
+
+        button:hover { background: #8b0000; color: #fff; box-shadow: 0 0 15px #8b0000; }
+
+        input {
+            background: transparent; border: none; border-bottom: 2px solid #444;
+            color: #fff; padding: 10px; font-size: 1.2rem; text-align: center;
+            outline: none; margin-top: 20px; width: 80%;
+        }
+
+        .hbd-bg { background-color: #ffffff !important; color: #333 !important; transition: 1s; }
+        .hbd-text { font-family: 'Poppins', sans-serif; color: #ff4081 !important; animation: bounce 0.5s infinite alternate; }
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+    </style>
+</head>
+<body>
+
+    <!-- หน้าสำคัญ: ปลดล็อกเสียง -->
+    <div id="sound-unlocker">
+        <h1 class="glitch">THE SILENT ROOM</h1>
+        <p style="color: #444;">WARNING: TURN ON YOUR VOLUME</p>
+        <button onclick="startEverything()">START GAME (เปิดเสียง)</button>
+    </div>
+
+    <div id="game-container" class="hidden">
+        <!-- Stage 0 -->
+        <div id="stage0">
+            <h1 class="glitch">Are you alone?</h1>
+            <p>You wake up in a cold, dark room. The air feels heavy.</p>
+            <p>Something is written on the wall...</p>
+            <button onclick="showStage(1)">Investigate</button>
+        </div>
+
+        <!-- Stage 1 -->
+        <div id="stage1" class="hidden">
+            <p>The heavy iron door is locked with a keypad.</p>
+            <p style="color: #222; font-size: 0.8rem;">Hint: The day you woke up (8 digits)</p>
+            <input type="text" id="code-input" placeholder="aw=dwawDDMMYYYYaa=-13" maxlength="8">
+            <br>
+            <button onclick="checkStage1()">Unlock</button>
+        </div>
+
+        <!-- Stage 2 -->
+        <div id="stage2" class="hidden">
+            <p>The mirror rejects these letters.</p>
+            <p style="color: #8b0000; font-style: italic;">"Your true name cannot be written with the foreign letters you see right now..."</p>
+            <input type="text" id="name-input" placeholder="?????">
+            <br>
+            <button onclick="checkStage2()">Call the name</button>
+        </div>
+
+        <!-- Stage 3 -->
+        <div id="stage3" class="hidden">
+            <h2 class="glitch">IT IS RIGHT BEHIND YOU.</h2>
+            <p>Count to three... and face your fate.</p>
+            <button onclick="revealHBD()">I'm ready</button>
+        </div>
+
+        <!-- Stage Final -->
+        <div id="stage-final" class="hidden">
+            <div style="font-size: 80px;">🎂</div>
+            <h1 class="hbd-text" style="font-size: 3rem; margin: 0;">HAPPY BIRTHDAY!</h1>
+            <h2 id="final-name" style="color: #ff4081;"></h2>
+            <p>ยินดีด้วยที่มาถึงจุดนี้อีกครั้งในปีนี้ เย้้้้้้!<br>ปีนี้ก็ขอให้มึงสุขภาพแข็งแรงและโชคดีขึ้นนะ!</p>
+            <button onclick="location.reload()" style="border-color: #ff4081; color: #ff4081;">Replay</button>
+        </div>
+    </div>
+
+    <script>
+        // สร้างตัวแปรเสียงแบบ Native
+        const horrorBgm = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-17.mp3');
+        const doorSfx = new Audio('https://www.soundjay.com/mechanical/sounds/door-creak-02.mp3');
+        const screamSfx = new Audio('https://www.soundjay.com/human/sounds/man-scream-01.mp3');
+        const hbdMusic = new Audio('https://upload.wikimedia.org/wikipedia/commons/3/34/Happy_Birthday_to_You_%28Instrumental%29.mp3');
+
+        horrorBgm.loop = true;
+
+        function startEverything() {
+            // หัวใจสำคัญ: เมื่อกดปุ่มนี้ ให้เล่นเสียงทุกอย่างแล้วหยุดทันทีเพื่อปลดล็อก
+            [horrorBgm, doorSfx, screamSfx, hbdMusic].forEach(s => {
+                s.play().then(() => s.pause()).catch(e => console.log("Unlock failed"));
+            });
+
+            horrorBgm.currentTime = 0;
+            horrorBgm.play();
+
+            document.getElementById('sound-unlocker').style.display = 'none';
+            document.getElementById('game-container').classList.remove('hidden');
+        }
+
+        function showStage(num) {
+            document.querySelectorAll('#game-container > div').forEach(div => div.classList.add('hidden'));
+            document.getElementById('stage' + num).classList.remove('hidden');
+        }
+
+        function checkStage1() {
+            const code = document.getElementById('code-input').value;
+            if(code === '19052551' || code === '19052008') {
+                doorSfx.play();
+                showStage(2);
+            } else {
+                screamSfx.play();
+                alert('Wrong code...');
+            }
+        }
+
+        function checkStage2() {
+            const name = document.getElementById('name-input').value.trim();
+            if(name === 'เนตร') {
+                window.userName = name;
+                doorSfx.play();
+                showStage(3);
+            } else {
+                screamSfx.play();
+                alert('The mirror remains silent.');
+            }
+        }
+
+        function revealHBD() {
+            horrorBgm.pause();
+            hbdMusic.play();
+
+            document.body.classList.add('hbd-bg');
+            document.getElementById('final-name').innerText = "✨ " + (window.userName || "เนตร") + " ✨";
+            
+            document.querySelectorAll('#game-container > div').forEach(div => div.classList.add('hidden'));
+            document.getElementById('stage-final').classList.remove('hidden');
+            startConfetti();
+        }
+
+        function startConfetti() {
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const p = document.createElement('div');
+                    p.innerText = Math.random() > 0.5 ? "🎈" : "✨";
+                    p.style.position = 'fixed';
+                    p.style.left = Math.random() * 100 + 'vw';
+                    p.style.top = '110vh';
+                    p.style.fontSize = '30px';
+                    document.body.appendChild(p);
+                    let pos = 110;
+                    function up() {
+                        pos -= 2; p.style.top = pos + 'vh';
+                        if (pos > -10) requestAnimationFrame(up);
+                        else p.remove();
+                    }
+                    up();
+                }, i * 100);
+            }
+        }
+    </script>
+</body>
+</html>
