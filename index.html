@@ -169,25 +169,39 @@ const hbdMusic = new Audio('hbd-song.mp3');
         }
 
         function startConfetti() {
-            for (let i = 0; i < 50; i++) {
-                setTimeout(() => {
-                    const p = document.createElement('div');
-                    p.innerText = Math.random() > 0.5 ? "🎈" : "✨";
-                    p.style.position = 'fixed';
-                    p.style.left = Math.random() * 100 + 'vw';
-                    p.style.top = '110vh';
-                    p.style.fontSize = '30px';
-                    document.body.appendChild(p);
-                    let pos = 110;
-                    function up() {
-                        pos -= 2; p.style.top = pos + 'vh';
-                        if (pos > -10) requestAnimationFrame(up);
-                        else p.remove();
-                    }
-                    up();
-                }, i * 100);
+    for (let i = 0; i < 50; i++) {
+        setTimeout(() => {
+            const p = document.createElement('div');
+            p.innerText = Math.random() > 0.5 ? "🎈" : "✨";
+            p.style.position = 'fixed';
+            p.style.left = Math.random() * 100 + 'vw';
+            p.style.top = '110vh';
+            
+            // --- ส่วนที่เพิ่มการสุ่มขนาด ---
+            // สุ่มขนาดตั้งแต่ 20px ถึง 60px
+            const randomSize = Math.floor(Math.random() * 41) + 20; 
+            p.style.fontSize = randomSize + 'px';
+            
+            // สุ่มความเร็ว (ยิ่งตัวใหญ่ยิ่งลอยเร็ว หรือสุ่มแยกก็ได้)
+            let speed = Math.random() * 1 + 1; 
+            // ---------------------------
+
+            p.style.zIndex = "999"; // ให้ลอยทับทุกอย่าง
+            p.style.pointerEvents = "none"; // ทำให้คลิกทะลุได้ ไม่เกะกะปุ่ม
+            
+            document.body.appendChild(p);
+            
+            let pos = 110;
+            function up() {
+                pos -= speed; // ใช้ความเร็วที่สุ่มมา
+                p.style.top = pos + 'vh';
+                if (pos > -10) requestAnimationFrame(up);
+                else p.remove();
             }
-        }
+            up();
+        }, i * 100);
+    }
+}
     </script>
 </body>
 </html>
